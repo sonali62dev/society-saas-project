@@ -399,7 +399,8 @@ export default function LandingPage() {
                 buttonText: 'Get Started',
                 buttonVariant: 'outline'
               }
-            })
+            // Sort plans by price in ascending order (Low to High: ₹0 -> ₹499 -> ₹1,299 -> ₹1,999 -> ₹4,999)
+            mapped.sort((a: any, b: any) => a.numericPrice - b.numericPrice)
             setActivePlans(mapped)
           }
         }
