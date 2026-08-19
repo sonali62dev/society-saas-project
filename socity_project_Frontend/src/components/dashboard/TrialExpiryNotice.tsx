@@ -171,36 +171,36 @@ export function TrialExpiryNotice({ daysLeft = 2, planName = '7-Day Free Trial' 
       {/* 2. FREE TRIAL / SUBSCRIPTION EXPIRING SOON POPUP MODAL */}
       <AnimatePresence>
         {showModal && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
             <motion.div
               initial={{ scale: 0.9, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.9, opacity: 0, y: 20 }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="bg-[#0d1522] rounded-3xl p-8 max-w-md w-full shadow-2xl text-center relative border border-slate-800 space-y-6 text-white"
+              className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl text-center relative border border-gray-100 space-y-6 text-gray-900"
             >
               {/* Hourglass Badge Icon */}
-              <div className="w-16 h-16 rounded-full bg-amber-500/10 border border-amber-500/30 flex items-center justify-center mx-auto shadow-inner text-amber-400">
-                <span className="text-3xl animate-bounce">⏳</span>
+              <div className="w-16 h-16 rounded-full bg-amber-50 border border-amber-100 flex items-center justify-center mx-auto shadow-sm">
+                <span className="text-3xl">⏳</span>
               </div>
 
               {/* Header Title */}
               <div className="space-y-2">
-                <h2 className="text-2xl font-extrabold text-white tracking-tight">
+                <h2 className="text-2xl font-bold text-gray-900 tracking-tight">
                   {isPaidPlan ? 'Subscription Pack Expiring Soon!' : 'Free Trial Expiring Soon!'}
                 </h2>
-                <p className="text-xs sm:text-sm text-slate-400 leading-relaxed px-2">
+                <p className="text-sm text-gray-500 leading-relaxed px-2">
                   {isPaidPlan ? (
                     <>
                       Notice: You have only{' '}
-                      <strong className="font-extrabold text-amber-400">{actualDaysLeft} days left</strong> in your{' '}
-                      <span className="font-semibold text-slate-200">{user?.society?.subscriptionPlan || 'Subscription'} Pack</span>. Renew your plan now for uninterrupted access.
+                      <strong className="font-bold text-orange-600">{actualDaysLeft} days left</strong> in your{' '}
+                      <span className="font-medium text-gray-700">{user?.society?.subscriptionPlan || 'Subscription'} Pack</span>. Renew your plan now for uninterrupted access.
                     </>
                   ) : (
                     <>
                       Notice: You have only{' '}
-                      <strong className="font-extrabold text-amber-400">{actualDaysLeft} days left</strong> in your{' '}
-                      <span className="font-semibold text-slate-200">{planName}</span>. Upgrade your plan now to avoid property & unit creation limits.
+                      <strong className="font-bold text-orange-600">{actualDaysLeft} days left</strong> in your{' '}
+                      <span className="font-medium text-gray-700">7-Day Free Trial plan</span>. Upgrade your plan now to avoid property & unit creation limits.
                     </>
                   )}
                 </p>
@@ -210,7 +210,7 @@ export function TrialExpiryNotice({ daysLeft = 2, planName = '7-Day Free Trial' 
               <div className="space-y-3 pt-2">
                 <Button
                   onClick={handleUpgradeNow}
-                  className="w-full bg-emerald-500 hover:bg-emerald-400 text-black font-extrabold h-12 rounded-xl text-sm tracking-wide shadow-[0_0_20px_rgba(16,185,129,0.3)] flex items-center justify-center gap-2 cursor-pointer transition-all uppercase"
+                  className="w-full bg-[#2563eb] hover:bg-[#1d4ed8] text-white font-bold h-12 rounded-xl text-sm tracking-wide shadow-md hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer transition-all uppercase"
                 >
                   <span>{isPaidPlan ? 'RENEW / UPGRADE PLAN NOW' : 'UPGRADE PLAN NOW'}</span>
                   <ArrowRight className="w-4 h-4" />
@@ -219,7 +219,7 @@ export function TrialExpiryNotice({ daysLeft = 2, planName = '7-Day Free Trial' 
                 <div>
                   <button
                     onClick={handleRemindLater}
-                    className="text-xs font-semibold text-slate-400 hover:text-slate-200 transition-colors cursor-pointer py-1"
+                    className="text-sm font-medium text-gray-500 hover:text-gray-800 transition-colors cursor-pointer py-1"
                   >
                     Remind Me Later
                   </button>
