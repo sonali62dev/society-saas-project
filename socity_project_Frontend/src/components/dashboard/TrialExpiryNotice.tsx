@@ -53,22 +53,23 @@ export function TrialExpiryNotice({ daysLeft = 2, planName = '7-Day Free Trial' 
   const { user } = useAuthStore()
   const router = useRouter()
 
-  // 0. Only show to Society Admin (customers on trial/paid pack), NEVER Super Admin, Residents, Guards, etc.
+  // 0. Only show to Society Admin (NEVER Super Admin, Residents, Guards, Individuals, Vendors)
   const userRole = (user?.role || '').toLowerCase()
   const isSocietyAdmin = userRole === 'admin' || userRole === 'society_admin'
 
-  // 1. Check if user is already on a paid plan
-  const planUpper = (user?.society?.subscriptionPlan || '').toUpperCase()
-  const isPaidPlan = planUpper.includes('STARTER') || planUpper.includes('STANDARD') || planUpper.includes('PRO') || planUpper.includes('ENTERPRISE') || planUpper.includes('PROFESSIONAL')
+  // 1. Check if user's society is on a Free Trial (isPaid = false)
+  const isPaidPlan = Boolean(user?.society?.isPaid)
 
-  // 2. Calculate actual remaining days (7-day trial limit vs 30-day billing pack limit)
+  // 2. Calculate remaining days of 7-Day Free Trial
   const createdTime = user?.society?.createdAt ? new Date(user.society.createdAt).getTime() : null
   const daysElapsed = createdTime ? Math.floor((Date.now() - createdTime) / (1000 * 60 * 60 * 24)) : 5
-  const totalPlanDays = isPaidPlan ? 30 : 7
-  const actualDaysLeft = Math.max(0, totalPlanDays - (daysElapsed % totalPlanDays))
+  const actualDaysLeft = Math.max(0, 7 - daysElapsed)
 
-  // 3. Strict 2-Day Expiry Condition: Only true when user is Society Admin AND <= 2 days remaining
-  const isTrialExpiringSoon = isSocietyAdmin && actualDaysLeft <= 2
+  // 3. Strict Expiry Rule:
+  // - MUST be a Society Admin
+  // - MUST be on Free Trial (isPaid === false)
+  // - MUST have 2 or fewer days left (actualDaysLeft <= 2)
+  const isTrialExpiringSoon = isSocietyAdmin && !isPaidPlan && actualDaysLeft <= 2
 
   const [mounted, setMounted] = useState(false)
   const [showModal, setShowModal] = useState(false)
