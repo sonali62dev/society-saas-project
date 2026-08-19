@@ -57,19 +57,23 @@ export function TrialExpiryNotice({ daysLeft = 2, planName = '7-Day Free Trial' 
   const userRole = (user?.role || '').toLowerCase()
   const isSocietyAdmin = userRole === 'admin' || userRole === 'society_admin'
 
-  // 1. Check if user's society is on a Free Trial (isPaid = false)
+  // 1. Check if user's society is on a Paid Subscription vs Free Trial
   const isPaidPlan = Boolean(user?.society?.isPaid)
 
-  // 2. Calculate remaining days of 7-Day Free Trial based on real DB createdAt timestamp
+  // 2. Calculate remaining days:
+  // - 7 Days for Free Trial
+  // - 30 Days cycle for Paid Subscription
   const createdTime = user?.society?.createdAt ? new Date(user.society.createdAt).getTime() : null
+  const totalDaysInPeriod = isPaidPlan ? 30 : 7
   const daysElapsed = createdTime ? Math.floor((Date.now() - createdTime) / (1000 * 60 * 60 * 24)) : 0
-  const actualDaysLeft = Math.max(0, 7 - daysElapsed)
+  const cycleDaysElapsed = daysElapsed % totalDaysInPeriod
+  const actualDaysLeft = Math.max(0, totalDaysInPeriod - cycleDaysElapsed)
 
-  // 3. Strict Expiry Rule:
+  // 3. Strict Expiry Rule for BOTH Trial & Paid Subscriptions:
   // - MUST be a Society Admin
-  // - MUST be on Free Trial (isPaid === false)
-  // - MUST have 2 or fewer days left (actualDaysLeft <= 2)
-  const isTrialExpiringSoon = isSocietyAdmin && !isPaidPlan && createdTime !== null && actualDaysLeft <= 2 && actualDaysLeft >= 0
+  // - MUST have valid createdAt date
+  // - MUST have 2 or fewer days left in current trial or subscription cycle (actualDaysLeft <= 2)
+  const isTrialExpiringSoon = isSocietyAdmin && createdTime !== null && actualDaysLeft <= 2 && actualDaysLeft >= 0
 
   const [mounted, setMounted] = useState(false)
   const [showModal, setShowModal] = useState(false)
