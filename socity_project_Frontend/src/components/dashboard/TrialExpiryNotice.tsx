@@ -60,16 +60,16 @@ export function TrialExpiryNotice({ daysLeft = 2, planName = '7-Day Free Trial' 
   // 1. Check if user's society is on a Free Trial (isPaid = false)
   const isPaidPlan = Boolean(user?.society?.isPaid)
 
-  // 2. Calculate remaining days of 7-Day Free Trial
+  // 2. Calculate remaining days of 7-Day Free Trial based on real DB createdAt timestamp
   const createdTime = user?.society?.createdAt ? new Date(user.society.createdAt).getTime() : null
-  const daysElapsed = createdTime ? Math.floor((Date.now() - createdTime) / (1000 * 60 * 60 * 24)) : 5
+  const daysElapsed = createdTime ? Math.floor((Date.now() - createdTime) / (1000 * 60 * 60 * 24)) : 0
   const actualDaysLeft = Math.max(0, 7 - daysElapsed)
 
   // 3. Strict Expiry Rule:
   // - MUST be a Society Admin
   // - MUST be on Free Trial (isPaid === false)
   // - MUST have 2 or fewer days left (actualDaysLeft <= 2)
-  const isTrialExpiringSoon = isSocietyAdmin && !isPaidPlan && actualDaysLeft <= 2
+  const isTrialExpiringSoon = isSocietyAdmin && !isPaidPlan && createdTime !== null && actualDaysLeft <= 2 && actualDaysLeft >= 0
 
   const [mounted, setMounted] = useState(false)
   const [showModal, setShowModal] = useState(false)
