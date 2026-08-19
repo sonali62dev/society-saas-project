@@ -327,7 +327,7 @@ export default function LandingPage() {
               if (p.features) {
                 if (typeof p.features === 'string') {
                   if (p.features.startsWith('[')) {
-                    try { planFeatures = JSON.parse(p.features) } catch (e) { planFeatures = [p.features] }
+                    try { planFeatures = JSON.parse(p.features) } catch (e) { planFeatures = [] }
                   } else {
                     planFeatures = p.features.split('\n').map((f: string) => f.trim()).filter(Boolean)
                   }
@@ -336,13 +336,54 @@ export default function LandingPage() {
                 }
               }
 
-              if (planFeatures.length === 0) {
-                planFeatures = [
-                  p.description || 'Full society management features',
-                  `Billing Cycle: ${p.type || 'Monthly'}`,
-                  'Full Resident & Security Access',
-                  '24/7 Dedicated Support'
-                ]
+              if (planFeatures.length === 0 || (planFeatures.length <= 4 && planFeatures[0] === p.description)) {
+                const nameLower = (p.name || '').toLowerCase()
+                const priceVal = numPrice
+
+                if (nameLower.includes('free') || priceVal === 0) {
+                  planFeatures = [
+                    'Basic Gate Visitor Management',
+                    'Up to 1 Society / 50 Residents',
+                    'Community Notice Board',
+                    'Emergency SOS Trigger',
+                    'Standard Support'
+                  ]
+                } else if (nameLower.includes('trial') || priceVal < 500) {
+                  planFeatures = [
+                    'Digital Gate QR Scan Entry',
+                    'Resident Directory & My Unit',
+                    'Basic Maintenance Invoicing',
+                    'Complaint & Helpdesk Tickets',
+                    'Email & Chat Support'
+                  ]
+                } else if (nameLower.includes('basic') || priceVal < 1500) {
+                  planFeatures = [
+                    'Complete Resident & Security Access',
+                    'Vehicle Parking QR Stickers',
+                    'Domestic Staff / Maid Attendance',
+                    'Automated Dues & Payment Receipts',
+                    'Priority Support (Mon-Sat)'
+                  ]
+                } else if (nameLower.includes('pro plan') || (nameLower.includes('pro') && !nameLower.includes('professional')) || priceVal < 3000) {
+                  planFeatures = [
+                    'All Basic Plan Features Included',
+                    'Advanced Accounting & Bank Ledger',
+                    'Local Vendor & Service Auto-Matching',
+                    'Amenity & Facility Booking System',
+                    'Multi-Guard Gate Station Access',
+                    '24/7 Dedicated Support'
+                  ]
+                } else {
+                  // Professional / Advance
+                  planFeatures = [
+                    'All Pro Plan Features Included',
+                    'Full Double-Entry Society Accounting',
+                    'B2C Individual Client Management',
+                    'Super Admin Analytics & Audit Logs',
+                    'Unlimited Residents, Units & Guards',
+                    'Dedicated Account Manager (24/7)'
+                  ]
+                }
               }
 
               return {
