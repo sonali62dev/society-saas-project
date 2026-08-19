@@ -172,7 +172,7 @@ export function TrialExpiryNotice({ daysLeft = 2, planName = '7-Day Free Trial' 
         )}
       </AnimatePresence>
 
-      {/* 2. FREE TRIAL / SUBSCRIPTION EXPIRING SOON POPUP MODAL */}
+      {/* 2. FREE TRIAL / SUBSCRIPTION EXPIRING & EXPIRED POPUP MODALS */}
       <AnimatePresence>
         {showModal && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
@@ -181,54 +181,106 @@ export function TrialExpiryNotice({ daysLeft = 2, planName = '7-Day Free Trial' 
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.9, opacity: 0, y: 20 }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl text-center relative border border-gray-100 space-y-6 text-gray-900"
+              className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl text-center relative border border-gray-100 space-y-5 text-gray-900"
             >
-              {/* Hourglass Badge Icon */}
-              <div className="w-16 h-16 rounded-full bg-amber-50 border border-amber-100 flex items-center justify-center mx-auto shadow-sm">
-                <span className="text-3xl">⏳</span>
-              </div>
+              {actualDaysLeft === 0 ? (
+                /* EXPIRED / LIMIT REACHED POPUP (2nd Screenshot Design) */
+                <>
+                  {/* Warning Icon Badge */}
+                  <div className="w-16 h-16 rounded-full bg-red-50 border border-red-100 flex items-center justify-center mx-auto shadow-sm">
+                    <span className="text-3xl">⚠️</span>
+                  </div>
 
-              {/* Header Title */}
-              <div className="space-y-2">
-                <h2 className="text-2xl font-bold text-gray-900 tracking-tight">
-                  {isPaidPlan ? 'Subscription Pack Expiring Soon!' : 'Free Trial Expiring Soon!'}
-                </h2>
-                <p className="text-sm text-gray-500 leading-relaxed px-2">
-                  {isPaidPlan ? (
-                    <>
-                      Notice: You have only{' '}
-                      <strong className="font-bold text-orange-600">{actualDaysLeft} days left</strong> in your{' '}
-                      <span className="font-medium text-gray-700">{user?.society?.subscriptionPlan || 'Subscription'} Pack</span>. Renew your plan now for uninterrupted access.
-                    </>
-                  ) : (
-                    <>
-                      Notice: You have only{' '}
-                      <strong className="font-bold text-orange-600">{actualDaysLeft} days left</strong> in your{' '}
-                      <span className="font-medium text-gray-700">7-Day Free Trial plan</span>. Upgrade your plan now to avoid property & unit creation limits.
-                    </>
-                  )}
-                </p>
-              </div>
+                  {/* Limit Exceeded Tag */}
+                  <div>
+                    <span className="inline-block px-3 py-1 bg-pink-100 text-pink-600 text-[10px] font-extrabold rounded-full uppercase tracking-wider">
+                      LIMIT EXCEEDED
+                    </span>
+                  </div>
 
-              {/* Action Buttons */}
-              <div className="space-y-3 pt-2">
-                <Button
-                  onClick={handleUpgradeNow}
-                  className="w-full bg-[#2563eb] hover:bg-[#1d4ed8] text-white font-bold h-12 rounded-xl text-sm tracking-wide shadow-md hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer transition-all uppercase"
-                >
-                  <span>{isPaidPlan ? 'RENEW / UPGRADE PLAN NOW' : 'UPGRADE PLAN NOW'}</span>
-                  <ArrowRight className="w-4 h-4" />
-                </Button>
+                  {/* Header Title */}
+                  <div className="space-y-2">
+                    <h2 className="text-2xl font-bold text-gray-900 tracking-tight">
+                      Subscription Limit Reached
+                    </h2>
+                    <p className="text-xs sm:text-sm text-gray-500 leading-relaxed px-2">
+                      {isPaidPlan
+                        ? 'Your subscription plan has expired. Please upgrade your subscription plan to continue using dashboard services.'
+                        : 'Unit limit reached (1 max for Free Trial plan). Please upgrade your subscription plan to create more units.'}
+                    </p>
+                  </div>
 
-                <div>
-                  <button
-                    onClick={handleRemindLater}
-                    className="text-sm font-medium text-gray-500 hover:text-gray-800 transition-colors cursor-pointer py-1"
-                  >
-                    Remind Me Later
-                  </button>
-                </div>
-              </div>
+                  {/* Action Buttons */}
+                  <div className="space-y-3 pt-2">
+                    <Button
+                      onClick={handleUpgradeNow}
+                      className="w-full bg-[#2563eb] hover:bg-[#1d4ed8] text-white font-bold h-12 rounded-xl text-xs sm:text-sm tracking-wide shadow-md hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer transition-all uppercase"
+                    >
+                      <span>UPGRADE SUBSCRIPTION PLAN</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </Button>
+
+                    <div>
+                      <button
+                        onClick={handleRemindLater}
+                        className="text-sm font-medium text-gray-500 hover:text-gray-800 transition-colors cursor-pointer py-1"
+                      >
+                        Close
+                      </button>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                /* 2-DAYS BEFORE EXPIRY POPUP (1st Screenshot Design) */
+                <>
+                  {/* Hourglass Icon Badge */}
+                  <div className="w-16 h-16 rounded-full bg-amber-50 border border-amber-100 flex items-center justify-center mx-auto shadow-sm">
+                    <span className="text-3xl">⏳</span>
+                  </div>
+
+                  {/* Header Title */}
+                  <div className="space-y-2">
+                    <h2 className="text-2xl font-bold text-gray-900 tracking-tight">
+                      {isPaidPlan ? 'Subscription Pack Expiring Soon!' : 'Free Trial Expiring Soon!'}
+                    </h2>
+                    <p className="text-sm text-gray-500 leading-relaxed px-2">
+                      {isPaidPlan ? (
+                        <>
+                          Notice: You have only{' '}
+                          <strong className="font-bold text-orange-600">{actualDaysLeft} days left</strong> in your{' '}
+                          <span className="font-medium text-gray-700">{user?.society?.subscriptionPlan || 'Subscription'} Pack</span>. Renew your plan now for uninterrupted access.
+                        </>
+                      ) : (
+                        <>
+                          Notice: You have only{' '}
+                          <strong className="font-bold text-orange-600">{actualDaysLeft} days left</strong> in your{' '}
+                          <span className="font-medium text-gray-700">7-Day Free Trial plan</span>. Upgrade your plan now to avoid property & unit creation limits.
+                        </>
+                      )}
+                    </p>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="space-y-3 pt-2">
+                    <Button
+                      onClick={handleUpgradeNow}
+                      className="w-full bg-[#2563eb] hover:bg-[#1d4ed8] text-white font-bold h-12 rounded-xl text-sm tracking-wide shadow-md hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer transition-all uppercase"
+                    >
+                      <span>{isPaidPlan ? 'RENEW / UPGRADE PLAN NOW' : 'UPGRADE PLAN NOW'}</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </Button>
+
+                    <div>
+                      <button
+                        onClick={handleRemindLater}
+                        className="text-sm font-medium text-gray-500 hover:text-gray-800 transition-colors cursor-pointer py-1"
+                      >
+                        Remind Me Later
+                      </button>
+                    </div>
+                  </div>
+                </>
+              )}
             </motion.div>
           </div>
         )}
