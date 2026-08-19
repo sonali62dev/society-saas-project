@@ -2,194 +2,229 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { motion } from 'framer-motion'
-import { CheckCircle2, CreditCard, Building2, LayoutDashboard, ArrowRight, ArrowLeft, ShieldCheck, Zap } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Check, ShieldCheck, Zap, ArrowLeft, ArrowRight, CreditCard, Sparkles, Building2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { useAuthStore } from '@/lib/stores/auth-store'
+import { RazorpayModal } from '@/components/society/RazorpayModal'
 import api from '@/lib/api'
 import { toast } from 'sonner'
+
+const activationPlans = [
+  {
+    name: 'Starter',
+    tag: 'ESSENTIAL',
+    price: '₹1',
+    numericPrice: 1,
+    period: 'per month',
+    description: 'Essential society management features.',
+    features: ['Essential features for small societies', 'Duration: Monthly', 'Up to 100 Units', 'Gate Security Access'],
+    isPopular: false,
+  },
+  {
+    name: 'Standard',
+    tag: 'MOST POPULAR',
+    price: '₹1,299',
+    numericPrice: 1299,
+    period: 'per month',
+    description: 'Complete features for growing societies.',
+    features: ['Complete features for growing societies', 'Duration: Monthly', 'Unlimited Resident & Security Pass', 'Automated Billing & Accounts'],
+    isPopular: true,
+  },
+  {
+    name: 'Pro',
+    tag: 'AI POWERED',
+    price: '₹1,499',
+    numericPrice: 1499,
+    period: 'per month',
+    description: 'Advanced features and priority support.',
+    features: ['🤖 Kiaan AI Assistant & AI Features', 'Advanced features and priority support', 'Duration: Monthly', 'Dedicated Account Support'],
+    isPopular: false,
+  },
+]
 
 export function SocietyPaymentFlow() {
   const router = useRouter()
   const { user, updateUser, logout } = useAuthStore()
+  const [selectedPlan, setSelectedPlan] = useState<any>(activationPlans[1]) // Standard by default
+  const [showRazorpay, setShowRazorpay] = useState(false)
   const [isProcessing, setIsProcessing] = useState(false)
-  
+
   if (!user || !user.society) return null
-  
+
   const society = user.society
-  const plan = society.billingPlan
-  const discount = society.discount || 0
-  
-  const originalPrice = plan?.price || 0
-  const finalPrice = Math.round(originalPrice * (1 - discount / 100))
 
   const handleBack = () => {
     logout()
     router.push('/')
   }
 
-  const handlePayment = async () => {
+  const handlePaymentSuccess = async () => {
     setIsProcessing(true)
     try {
-      await api.post(`/society/${society.id}/pay`)
-      
-      // Update local storage/state
+      // 1. Update backend society status to paid
+      await api.post(`/society/${society.id}/pay`, {
+        planName: selectedPlan.name,
+        amount: selectedPlan.numericPrice,
+      })
+
+      // 2. Update local state so isPaid becomes true
       updateUser({
         society: {
           ...society,
-          isPaid: true
-        }
+          isPaid: true,
+          subscriptionPlan: selectedPlan.name,
+        },
       })
-      
-      toast.success('Payment successfully processed! Welcome to your dashboard.')
+
+      toast.success(`Subscription activated for ${selectedPlan.name} Plan! Welcome to your dashboard.`)
+      setShowRazorpay(false)
     } catch (error: any) {
-      toast.error(error.response?.data?.error || 'Payment failed. Please try again.')
+      toast.error(error.response?.data?.error || 'Payment verification failed. Please try again.')
     } finally {
       setIsProcessing(false)
     }
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4 sm:p-6">
+    <div className="min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center p-4 sm:p-6 font-sans">
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="max-w-4xl w-full space-y-6"
+        className="max-w-5xl w-full space-y-8 py-6"
       >
         {/* Back Button */}
         <div className="flex items-center justify-between">
           <Button
             variant="outline"
             onClick={handleBack}
-            className="flex items-center gap-2 bg-white text-slate-700 hover:text-slate-900 hover:bg-slate-100 border-slate-200 shadow-sm rounded-xl px-4 py-2 transition-all cursor-pointer font-semibold"
+            className="flex items-center gap-2 bg-slate-900 text-slate-300 hover:text-white hover:bg-slate-800 border-slate-800 rounded-xl px-4 py-2 transition-all cursor-pointer font-semibold"
           >
-            <ArrowLeft className="h-4 w-4 text-slate-500" />
-            <span>← Back to Home</span>
+            <ArrowLeft className="h-4 w-4 text-slate-400" />
+            <span>Back to Home</span>
           </Button>
+
+          <div className="flex items-center gap-2 text-xs text-slate-400">
+            <Building2 className="w-4 h-4 text-teal-400" />
+            <span>Society: <strong className="text-white">{society.name}</strong></span>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-          {/* Left Side: Info */}
-          <div className="lg:col-span-3 space-y-6">
-            <div className="space-y-2">
-              <h1 className="text-3xl font-bold text-slate-900">Welcome, {user.name}!</h1>
-              <p className="text-slate-500 text-lg">
-                Your society account for <span className="font-semibold text-teal-600">{society.name}</span> is ready. Just one last step to activate your dashboard.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Card className="border-none shadow-sm bg-white">
-                <CardContent className="p-4 flex items-center gap-4">
-                  <div className="p-3 bg-teal-100 rounded-xl">
-                    <Building2 className="h-6 w-6 text-teal-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-slate-500 font-medium">Society Code</p>
-                    <p className="font-bold text-slate-800 uppercase">{society.code}</p>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="border-none shadow-sm bg-white">
-                <CardContent className="p-4 flex items-center gap-4">
-                  <div className="p-3 bg-purple-100 rounded-xl">
-                    <ShieldCheck className="h-6 w-6 text-purple-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-slate-500 font-medium">Plan Tier</p>
-                    <p className="font-bold text-slate-800">{society.subscriptionPlan || 'STANDARD'}</p>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-slate-800">What's included in your plan:</h3>
-              <ul className="space-y-3">
-                {[
-                  'Full Resident Management',
-                  'Digital Gate Pass & Security',
-                  'Automated Billing & Invoicing',
-                  'Community Engagement Tools',
-                  'Advanced Reporting & Analytics'
-                ].map((feature, i) => (
-                  <li key={i} className="flex items-center gap-3 text-slate-600">
-                    <CheckCircle2 className="h-5 w-5 text-teal-500 flex-shrink-0" />
-                    <span>{feature}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
+        {/* Header Section */}
+        <div className="text-center space-y-3 max-w-2xl mx-auto">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-500/10 border border-teal-500/30 text-teal-400 text-xs font-bold uppercase tracking-wider">
+            <Zap className="w-3.5 h-3.5" />
+            <span>CHOOSE SUBSCRIPTION PLAN TO ACTIVATE DASHBOARD</span>
           </div>
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+            Welcome, {user.name}!
+          </h1>
+          <p className="text-slate-400 text-sm sm:text-base leading-relaxed">
+            Your trial or plan has completed. Select a subscription plan below to reactivate full dashboard access for <strong className="text-teal-400">{society.name}</strong>.
+          </p>
+        </div>
 
-          {/* Right Side: Payment Summary */}
-          <div className="lg:col-span-2">
-            <Card className="border-none shadow-xl bg-white sticky top-6">
-              <CardHeader className="bg-slate-900 text-white rounded-t-xl py-6">
-                <CardTitle className="flex items-center justify-between">
-                  <span>Activation Fee</span>
-                  <Zap className="h-5 w-5 text-yellow-400 fill-yellow-400" />
-                </CardTitle>
-                <CardDescription className="text-slate-400">
-                  Setup & Subscription Activation
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="p-6 space-y-6">
-                <div className="bg-slate-50 p-6 rounded-xl border border-slate-100 shadow-inner">
-                  <p className="text-xs uppercase tracking-wider text-slate-400 font-bold mb-1">Final Activation Fee</p>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-4xl font-extrabold text-slate-900 tracking-tight">₹{finalPrice.toLocaleString()}</span>
-                    {discount > 0 && <span className="text-lg text-slate-400 line-through">₹{originalPrice.toLocaleString()}</span>}
-                  </div>
-                </div>
-
-                <div className="space-y-4 px-2">
-                  <div className="flex justify-between text-sm items-center">
-                    <span className="text-slate-500 font-medium">{plan?.name || (society.subscriptionPlan ? society.subscriptionPlan + ' Plan' : 'Subscription Plan')}</span>
-                    <span className="text-slate-900 font-semibold">₹{originalPrice.toLocaleString()}</span>
-                  </div>
-                
-                {discount > 0 && (
-                  <div className="flex justify-between text-sm items-center py-2 border-y border-dashed border-slate-200">
-                    <span className="flex items-center gap-1.5 text-emerald-600 font-semibold italic">
-                      <Badge className="bg-emerald-500 text-white border-none h-5 px-1.5 text-[10px] uppercase font-black">
-                        Saved
-                      </Badge>
-                      Special {discount}% Early Bird
-                    </span>
-                    <span className="text-emerald-600 font-bold">- ₹{(originalPrice - finalPrice).toLocaleString()}</span>
-                  </div>
+        {/* Pricing Cards Selection Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
+          {activationPlans.map((plan, i) => {
+            const isSelected = selectedPlan.name === plan.name
+            return (
+              <motion.div
+                key={i}
+                whileHover={{ y: -4 }}
+                onClick={() => setSelectedPlan(plan)}
+                className={`rounded-3xl p-6 border flex flex-col justify-between cursor-pointer transition-all duration-300 relative ${
+                  isSelected
+                    ? 'bg-gradient-to-b from-[#0f2820] to-[#0c1f18] border-2 border-teal-500 shadow-[0_0_30px_rgba(20,184,166,0.25)]'
+                    : 'bg-[#0f172a] border-slate-800 hover:border-slate-700'
+                }`}
+              >
+                {plan.isPopular && (
+                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full bg-teal-500 text-slate-950 text-[10px] font-black uppercase tracking-wider">
+                    MOST POPULAR
+                  </span>
                 )}
 
-                <div className="flex justify-between items-center pt-2">
-                  <span className="text-slate-900 font-bold">Total Amount</span>
-                  <span className="text-xl font-black text-teal-600">₹{finalPrice.toLocaleString()}</span>
-                </div>
-              </div>
+                <div className="space-y-5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-black text-slate-400 tracking-wider uppercase">{plan.tag}</span>
+                    <div
+                      className={`w-6 h-6 rounded-full border flex items-center justify-center transition-colors ${
+                        isSelected ? 'border-teal-500 bg-teal-500 text-slate-950' : 'border-slate-700'
+                      }`}
+                    >
+                      {isSelected && <Check className="w-4 h-4 stroke-[3]" />}
+                    </div>
+                  </div>
 
-              <div className="space-y-4">
-                <Button 
-                  className="w-full h-12 bg-teal-600 hover:bg-teal-700 text-white text-lg font-bold shadow-lg shadow-teal-600/20 group"
-                  onClick={handlePayment}
-                  disabled={isProcessing}
+                  <div>
+                    <h3 className="text-xl font-bold text-white">{plan.name} Plan</h3>
+                    <div className="flex items-baseline gap-1 mt-2">
+                      <span className="text-3xl font-black text-teal-400">{plan.price}</span>
+                      <span className="text-xs text-slate-400 font-normal">/ month</span>
+                    </div>
+                    <p className="text-xs text-slate-400 mt-2">{plan.description}</p>
+                  </div>
+
+                  <div className="space-y-2.5 pt-3 border-t border-slate-800/80">
+                    {plan.features.map((feat, fIdx) => (
+                      <div key={fIdx} className="flex items-start gap-2 text-xs text-slate-300">
+                        <Check className="w-4 h-4 text-teal-400 shrink-0 mt-0.5" />
+                        <span>{feat}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <Button
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setSelectedPlan(plan)
+                    setShowRazorpay(true)
+                  }}
+                  className={`w-full h-12 mt-8 font-extrabold text-xs tracking-wider uppercase rounded-xl cursor-pointer transition-all ${
+                    isSelected
+                      ? 'bg-teal-500 hover:bg-teal-400 text-slate-950 shadow-[0_0_20px_rgba(20,184,166,0.3)]'
+                      : 'bg-slate-800 hover:bg-slate-700 text-white'
+                  }`}
                 >
-                  {isProcessing ? 'Processing Payment...' : 'Complete Payment & Activate'}
-                  {!isProcessing && <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />}
+                  Pay & Activate ({plan.price})
                 </Button>
-
-                <div className="flex items-center justify-center gap-2 text-slate-400 text-xs text-center px-4">
-                  <CreditCard className="h-4 w-4" />
-                  <span>Secure payment processed via Platform Billing System</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              </motion.div>
+            )
+          })}
         </div>
-      </div>
-    </motion.div>
-  </div>
+
+        {/* Bottom Secure Payment Callout */}
+        <div className="flex flex-col sm:flex-row items-center justify-between p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80 text-xs text-slate-400 gap-3 text-center sm:text-left">
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="w-5 h-5 text-teal-400 shrink-0" />
+            <span>Instant Dashboard Access immediately after successful payment verification.</span>
+          </div>
+          <div className="flex items-center gap-2 text-slate-400">
+            <CreditCard className="w-4 h-4" />
+            <span>Secured via Razorpay & Online Gateways</span>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Razorpay Online Payment Gateway Modal */}
+      {showRazorpay && selectedPlan && (
+        <RazorpayModal
+          isOpen={showRazorpay}
+          onClose={() => setShowRazorpay(false)}
+          onSuccess={handlePaymentSuccess}
+          planPrice={selectedPlan.price}
+          numericPrice={selectedPlan.numericPrice}
+          adminPhone={user.phone || '74154 54810'}
+          adminEmail={user.email || 'admin@society.com'}
+          societyName={society.name}
+          isProcessing={isProcessing}
+        />
+      )}
+    </div>
   )
 }
+
