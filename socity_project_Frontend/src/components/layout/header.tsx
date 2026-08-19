@@ -764,7 +764,7 @@ export function Header() {
               </DropdownMenuItem>
               <DropdownMenuItem
                 className="cursor-pointer"
-                onClick={() => alert(`Contacting support at support@igatesecurity.com. Our team will get back to you shortly.`)}
+                onClick={() => router.push('/dashboard/helpdesk')}
               >
                 <Phone className="h-4 w-4 mr-2" />
                 Contact Support
