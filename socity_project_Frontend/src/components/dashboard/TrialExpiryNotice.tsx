@@ -112,8 +112,15 @@ export function TrialExpiryNotice({ daysLeft = 2, planName = '7-Day Free Trial' 
   if (!mounted) return null
 
   const handleRemindLater = () => {
-    setShowModal(false)
-    sessionStorage.setItem('trial_expiry_modal_dismissed', 'true')
+    if (isFullyExpired || actualDaysLeft === 0) {
+      // If plan/trial is FULLY EXPIRED and admin clicks Close without upgrading, LOGOUT IMMEDIATELY!
+      useAuthStore.getState().logout()
+      toast.error('Subscription plan expired. Please log in again to select a plan.')
+      router.push('/auth/login')
+    } else {
+      setShowModal(false)
+      sessionStorage.setItem('trial_expiry_modal_dismissed', 'true')
+    }
   }
 
   const handleUpgradeNow = () => {
@@ -191,7 +198,7 @@ export function TrialExpiryNotice({ daysLeft = 2, planName = '7-Day Free Trial' 
       {/* 2. FREE TRIAL / SUBSCRIPTION EXPIRING & EXPIRED POPUP MODALS */}
       <AnimatePresence>
         {showModal && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className={`fixed inset-0 z-[100] flex items-center justify-center p-4 ${isFullyExpired || actualDaysLeft === 0 ? 'bg-slate-950/90 backdrop-blur-md' : 'bg-black/50 backdrop-blur-sm'}`}>
             <motion.div
               initial={{ scale: 0.9, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
