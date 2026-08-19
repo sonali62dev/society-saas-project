@@ -1,0 +1,25 @@
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  # 1. Direct legacy emergency barcode URLs
+  RewriteRule ^emergency/(eb-[a-zA-Z0-9-]+)/?$ /emergency/index.html?id=$1 [QSA,L]
+
+  # 2. Serve static files directly if they exist
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  # 3. Check for subfolder index.html (Next.js trailingSlash export)
+  RewriteCond %{DOCUMENT_ROOT}/$1/index.html -f
+  RewriteRule ^(.*)$ /$1/index.html [L]
+
+  # 4. Check for .html file extension
+  RewriteCond %{DOCUMENT_ROOT}/$1.html -f
+  RewriteRule ^(.*)$ /$1.html [L]
+
+  # 5. Client-Side SPA Fallback for Next.js routes
+  RewriteRule ^ /index.html [L]
+</IfModule>
+
+ErrorDocument 404 /404.html

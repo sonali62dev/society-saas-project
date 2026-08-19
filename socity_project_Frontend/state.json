@@ -1,0 +1,14 @@
+{
+  "cookies": [],
+  "origins": [
+    {
+      "origin": "http://localhost:3000",
+      "localStorage": [
+        {
+          "name": "auth-storage",
+          "value": "{\"state\":{\"user\":{\"id\":\"1\",\"email\":\"admin@society.com\",\"role\":\"admin\",\"name\":\"Admin User\",\"society\":{\"id\":1,\"name\":\"Sharlow Bay Community\",\"isPaid\":true}},\"token\":\"mock-token-1\",\"isAuthenticated\":true,\"_hasHydrated\":true}}"
+        }
+      ]
+    }
+  ]
+}
