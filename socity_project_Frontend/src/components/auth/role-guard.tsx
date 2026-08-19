@@ -41,8 +41,9 @@ export function RoleGuard({
     return null
   }
 
-  // Check if user has required role
-  const hasRequiredRole = user?.role && allowedRoles.includes(user.role as UserRole)
+  // Check if user has required role (case-insensitive)
+  const userRoleNormalized = (user?.role || '').toLowerCase()
+  const hasRequiredRole = userRoleNormalized && allowedRoles.some((r) => r.toLowerCase() === userRoleNormalized)
 
   if (!hasRequiredRole) {
     return (

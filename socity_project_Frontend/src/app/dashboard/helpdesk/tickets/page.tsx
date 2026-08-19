@@ -144,7 +144,7 @@ export default function HelpdeskTicketsPage() {
   if (error) return <div className="p-8 text-red-500">Error loading tickets</div>
 
   return (
-    <RoleGuard allowedRoles={['resident', 'committee', 'admin', 'super_admin']}>
+    <RoleGuard allowedRoles={['resident', 'committee', 'admin', 'super_admin', 'individual', 'INDIVIDUAL', 'vendor', 'VENDOR', 'guard', 'GUARD']}>
       <div className="min-h-screen bg-transparent p-0">
         <CreateTicketDialog
           isOpen={isDialogOpen}
