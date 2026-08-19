@@ -42,32 +42,34 @@ import api from '@/lib/api'
 
 export default function RevenueReportsPage() {
   const { data: statsData, isLoading } = useQuery({
-    queryKey: ['revenue-stats'],
+    queryKey: ['revenue-stats-overview'],
     queryFn: async () => {
-      const response = await api.get('/platform-invoices/stats')
+      const response = await api.get('/reports/platform-stats')
       return response.data
     }
   })
 
-  const totalRevenue = statsData?.totalRevenue || 0
+  const rawTotalRev = statsData?.overview?.totalRevenue || statsData?.platformStats?.totalRevenue || '0'
+  const totalRevenue = typeof rawTotalRev === 'string' ? parseFloat(rawTotalRev.replace(/[^0-9.]/g, '')) || 0 : Number(rawTotalRev) || 0
   
-  const monthlyRevenue = Object.entries(statsData?.trend || {}).map(([month, revenue]) => ({
-    month,
-    revenue: revenue as number,
-    target: (revenue as number) * 0.9 // Mock target based on real revenue
+  const monthlyRevenue = (statsData?.revenueData || []).map((item: any) => ({
+    month: item.month,
+    revenue: item.revenue || 0,
+    target: (item.revenue || 0) * 0.9
   }))
 
-  const revenueByStatus = (statsData?.invoicesByStatus || []).map((item: any) => ({
-    name: item.status,
-    value: item._sum.amount || 0,
-    color: item.status === 'PAID' ? '#10b981' : item.status === 'PENDING' ? '#f59e0b' : '#ef4444'
+  const revenueByStatus = [
+    { name: 'PAID', value: totalRevenue, color: '#10b981' },
+    { name: 'PENDING', value: 0, color: '#f59e0b' },
+    { name: 'OVERDUE', value: 0, color: '#ef4444' }
+  ]
+
+  const outstanding = 0
+  const mrr = statsData?.platformStats?.monthlyRevenue || 0
+  const topSocieties = (statsData?.topSocieties || []).map((s: any) => ({
+    ...s,
+    revenue: typeof s.revenue === 'string' ? parseFloat(s.revenue.replace(/[^0-9.]/g, '')) || 0 : Number(s.revenue) || 0
   }))
-
-  const outstanding = (statsData?.invoicesByStatus || [])
-    .find((item: any) => item.status === 'PENDING')?._sum.amount || 0
-
-  const mrr = Object.values(statsData?.trend || {}).pop() as number || 0
-  const topSocieties = statsData?.topSocieties || []
 
   const handleExport = () => {
     toast.success('Exporting revenue report...')
