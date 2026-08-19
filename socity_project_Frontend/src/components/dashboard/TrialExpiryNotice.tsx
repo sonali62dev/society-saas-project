@@ -61,19 +61,19 @@ export function TrialExpiryNotice({ daysLeft = 2, planName = '7-Day Free Trial' 
   const isPaidPlan = Boolean(user?.society?.isPaid)
 
   // 2. Calculate remaining days:
-  // - 7 Days for Free Trial
-  // - 30 Days cycle for Paid Subscription
+  // - 7 Days total for Free Trial
+  // - 30 Days total for Paid Subscription
   const createdTime = user?.society?.createdAt ? new Date(user.society.createdAt).getTime() : null
   const totalDaysInPeriod = isPaidPlan ? 30 : 7
   const daysElapsed = createdTime ? Math.floor((Date.now() - createdTime) / (1000 * 60 * 60 * 24)) : 0
-  const cycleDaysElapsed = daysElapsed % totalDaysInPeriod
-  const actualDaysLeft = Math.max(0, totalDaysInPeriod - cycleDaysElapsed)
+  const actualDaysLeft = Math.max(0, totalDaysInPeriod - daysElapsed)
+  const isFullyExpired = createdTime !== null && daysElapsed >= totalDaysInPeriod
 
-  // 3. Strict Expiry Rule for BOTH Trial & Paid Subscriptions:
+  // 3. Strict Expiry Rule:
   // - MUST be a Society Admin
-  // - MUST have valid createdAt date
-  // - MUST have 2 or fewer days left in current trial or subscription cycle (actualDaysLeft <= 2)
-  const isTrialExpiringSoon = isSocietyAdmin && createdTime !== null && actualDaysLeft <= 2 && actualDaysLeft >= 0
+  // - MUST have valid createdAt timestamp
+  // - EITHER Expired (daysElapsed >= totalDaysInPeriod) OR Expiring Soon (actualDaysLeft <= 2)
+  const isTrialOrSubscriptionExpiring = isSocietyAdmin && createdTime !== null && (isFullyExpired || actualDaysLeft <= 2)
 
   const [mounted, setMounted] = useState(false)
   const [showModal, setShowModal] = useState(false)
@@ -86,12 +86,12 @@ export function TrialExpiryNotice({ daysLeft = 2, planName = '7-Day Free Trial' 
   useEffect(() => {
     setMounted(true)
     const isDismissed = typeof window !== 'undefined' ? sessionStorage.getItem('trial_expiry_modal_dismissed') : null
-    if (!isDismissed && isTrialExpiringSoon) {
+    if (!isDismissed && isTrialOrSubscriptionExpiring) {
       setShowModal(true)
     } else {
       setShowModal(false)
     }
-  }, [isTrialExpiringSoon])
+  }, [isTrialOrSubscriptionExpiring])
 
   if (!mounted) return null
 
@@ -126,7 +126,7 @@ export function TrialExpiryNotice({ daysLeft = 2, planName = '7-Day Free Trial' 
     <>
       {/* 1. TOP NOTICE BANNER */}
       <AnimatePresence>
-        {showTopBanner && isTrialExpiringSoon && (
+        {showTopBanner && isTrialOrSubscriptionExpiring && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
