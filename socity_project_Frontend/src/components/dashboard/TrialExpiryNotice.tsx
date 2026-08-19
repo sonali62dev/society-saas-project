@@ -67,7 +67,7 @@ export function TrialExpiryNotice({ daysLeft = 2, planName = '7-Day Free Trial' 
   const totalDaysInPeriod = isPaidPlan ? 30 : 7
   const daysElapsed = createdTime ? Math.floor((Date.now() - createdTime) / (1000 * 60 * 60 * 24)) : 0
   const actualDaysLeft = Math.max(0, totalDaysInPeriod - daysElapsed)
-  const isFullyExpired = createdTime !== null && daysElapsed >= totalDaysInPeriod
+  const isFullyExpired = (createdTime !== null && daysElapsed >= totalDaysInPeriod) || (createdTime !== null && actualDaysLeft === 0)
 
   // 3. Strict Expiry Rule:
   // - MUST be a Society Admin
@@ -86,12 +86,14 @@ export function TrialExpiryNotice({ daysLeft = 2, planName = '7-Day Free Trial' 
   useEffect(() => {
     setMounted(true)
     const isDismissed = typeof window !== 'undefined' ? sessionStorage.getItem('trial_expiry_modal_dismissed') : null
-    if (!isDismissed && isTrialOrSubscriptionExpiring) {
+    
+    // FOR EXPIRED ADVISORIES: ALWAYS force show the Subscription Limit Reached popup modal!
+    if (isSocietyAdmin && (isFullyExpired || (!isDismissed && isTrialOrSubscriptionExpiring))) {
       setShowModal(true)
     } else {
       setShowModal(false)
     }
-  }, [isTrialOrSubscriptionExpiring])
+  }, [isTrialOrSubscriptionExpiring, isFullyExpired, isSocietyAdmin])
 
   if (!mounted) return null
 
