@@ -37,8 +37,12 @@ export default function DashboardLayout({
 
   const isAdmin = user?.role === 'admin'
 
-  // Payment Guard for Society Admins
-  if (isAdmin && user?.society && !user.society.isPaid) {
+  // Payment Guard for Society Admins: Block access ONLY if 7-Day Free Trial has completely expired (daysElapsed >= 7)
+  const createdTime = user?.society?.createdAt ? new Date(user.society.createdAt).getTime() : null
+  const daysElapsed = createdTime ? Math.floor((Date.now() - createdTime) / (1000 * 60 * 60 * 24)) : 0
+  const isTrialExpired = !user?.society?.isPaid && daysElapsed >= 7
+
+  if (isAdmin && user?.society && isTrialExpired) {
     return <SocietyPaymentFlow />
   }
 
