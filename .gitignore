@@ -1,3 +1,8 @@
+# Database files
+*.sql
+*.sqlite
+*.db
+
 # Environment variables
 .env
 .env.*
